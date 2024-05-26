@@ -1,3 +1,4 @@
+from typing import List
 from config.config import TASK_CONFIG, ROBOT_PORTS
 import os
 import cv2
@@ -6,6 +7,7 @@ import argparse
 from tqdm import tqdm
 from time import sleep, time
 from training.utils import pwm2pos, pwm2vel
+import numpy as np
 
 from robot import Robot
 
@@ -19,6 +21,16 @@ num_episodes = args.num_episodes
 
 cfg = TASK_CONFIG
 
+def get_bias():
+    length = len(leader.read_position())
+    leader_pos = leader.read_position()
+    print(f"leader_pos: {leader_pos}")
+    follower_pos = follower.read_position()
+    print(f"follower_pos: {follower_pos}")
+    bias = [leader_pos[i] - follower_pos[i] for i in range(length)]
+    print(bias)
+    return bias
+
 
 def capture_image(cam):
     # Capture a single frame
@@ -26,33 +38,46 @@ def capture_image(cam):
     # Generate a unique filename with the current date and time
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # Define your crop coordinates (top left corner and bottom right corner)
-    x1, y1 = 400, 0  # Example starting coordinates (top left of the crop rectangle)
-    x2, y2 = 1600, 900  # Example ending coordinates (bottom right of the crop rectangle)
-    # Crop the image
-    image = image[y1:y2, x1:x2]
+    # x1, y1 = 400, 0  # Example starting coordinates (top left of the crop rectangle)
+    # x2, y2 = 1600, -1  # Example ending coordinates (bottom right of the crop rectangle)
+    # # Crop the image
+    # image = image[y1:y2, x1:x2]
     # Resize the image
     image = cv2.resize(image, (cfg['cam_width'], cfg['cam_height']), interpolation=cv2.INTER_AREA)
 
     return image
 
 
+def follow_leader_pos(leader_bot: Robot, follow_bot: Robot, bias: np.array):
+    pos = leader_bot.read_position()
+    print("[debug]-action-raw", pos)
+    action = pos - bias
+    follow_bot.set_goal_pos(action)
+    return action
+    
+
+
 if __name__ == "__main__":
+    
+    # init follower
+    follower = Robot(device_name=ROBOT_PORTS['follower'], servo_ids=[1,2,3,4,5,6])
+    # init leader
+    leader = Robot(device_name=ROBOT_PORTS['leader'], servo_ids=[1,2,3,4,5,6])
+    # get bias
+    # get_bias();exit()
+    
+    bias = np.array([2001, 885, 405, 1816, -118, 8])
     # init camera
     cam = cv2.VideoCapture(cfg['camera_port'])
     # Check if the camera opened successfully
     if not cam.isOpened():
         raise IOError("Cannot open camera")
-    # init follower
-    follower = Robot(device_name=ROBOT_PORTS['follower'])
-    # init leader
-    leader = Robot(device_name=ROBOT_PORTS['leader'])
     leader.set_trigger_torque()
-
     
     for i in range(num_episodes):
         # bring the follower to the leader and start camera
         for i in range(200):
-            follower.set_goal_pos(leader.read_position())
+            follow_leader_pos(leader, follower, bias)
             _ = capture_image(cam)
         os.system('say "go"')
         # init buffers
@@ -61,6 +86,7 @@ if __name__ == "__main__":
         for i in tqdm(range(cfg['episode_len'])):
             # observation
             qpos = follower.read_position()
+            print("[debug]-qpos", qpos)
             qvel = follower.read_velocity()
             image = capture_image(cam)
             obs = {
@@ -68,10 +94,8 @@ if __name__ == "__main__":
                 'qvel': pwm2vel(qvel),
                 'images': {cn : image for cn in cfg['camera_names']}
             }
-            # action (leader's position)
-            action = leader.read_position()
-            # apply action
-            follower.set_goal_pos(action)
+            # action (leader's position), apply action
+            action = follow_leader_pos(leader, follower, bias)
             action = pwm2pos(action)
             # store data
             obs_replay.append(obs)

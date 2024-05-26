@@ -17,8 +17,8 @@ os.environ['DEVICE'] = device
 
 # robot port names
 ROBOT_PORTS = {
-    'leader': '/dev/tty.usbmodem57380045221',
-    'follower': '/dev/tty.usbmodem57380046991'
+    'leader': '/dev/tty.usbmodem57640257821',
+    'follower': '/dev/tty.usbmodem58370530831'
 }
 
 
@@ -26,8 +26,8 @@ ROBOT_PORTS = {
 TASK_CONFIG = {
     'dataset_dir': DATA_DIR,
     'episode_len': 300,
-    'state_dim': 5,
-    'action_dim': 5,
+    'state_dim': 6,
+    'action_dim': 6,
     'cam_width': 640,
     'cam_height': 480,
     'camera_names': ['front'],

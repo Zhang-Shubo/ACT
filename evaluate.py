@@ -24,20 +24,36 @@ train_cfg = TRAIN_CONFIG
 device = os.environ['DEVICE']
 
 
+# def capture_image(cam):
+#     # Capture a single frame
+#     _, frame = cam.read()
+#     # Generate a unique filename with the current date and time
+#     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#     # Define your crop coordinates (top left corner and bottom right corner)
+#     x1, y1 = 400, 0  # Example starting coordinates (top left of the crop rectangle)
+#     x2, y2 = 1600, 900  # Example ending coordinates (bottom right of the crop rectangle)
+#     # Crop the image
+#     image = image[y1:y2, x1:x2]
+#     # Resize the image
+#     image = cv2.resize(image, (cfg['cam_width'], cfg['cam_height']), interpolation=cv2.INTER_AREA)
+
+#     return image
+
 def capture_image(cam):
     # Capture a single frame
     _, frame = cam.read()
     # Generate a unique filename with the current date and time
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # Define your crop coordinates (top left corner and bottom right corner)
-    x1, y1 = 400, 0  # Example starting coordinates (top left of the crop rectangle)
-    x2, y2 = 1600, 900  # Example ending coordinates (bottom right of the crop rectangle)
-    # Crop the image
-    image = image[y1:y2, x1:x2]
+    # x1, y1 = 400, 0  # Example starting coordinates (top left of the crop rectangle)
+    # x2, y2 = 1600, -1  # Example ending coordinates (bottom right of the crop rectangle)
+    # # Crop the image
+    # image = image[y1:y2, x1:x2]
     # Resize the image
     image = cv2.resize(image, (cfg['cam_width'], cfg['cam_height']), interpolation=cv2.INTER_AREA)
 
     return image
+
 
 if __name__ == "__main__":
     # init camera
