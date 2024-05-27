@@ -7,7 +7,7 @@ import torch
 DATA_DIR = 'data/'
 
 # checkpoint directory
-CHECKPOINT_DIR = 'checkpoints/'
+CHECKPOINT_DIR = 'checkpoints'
 
 # device
 device = 'cpu'
@@ -25,7 +25,7 @@ ROBOT_PORTS = {
 # task config (you can add new tasks)
 TASK_CONFIG = {
     'dataset_dir': DATA_DIR,
-    'episode_len': 300,
+    'episode_len': 2000,
     'state_dim': 6,
     'action_dim': 6,
     'cam_width': 640,
@@ -59,6 +59,7 @@ TRAIN_CONFIG = {
     'num_epochs': 2000,
     'batch_size_val': 8,
     'batch_size_train': 8,
-    'eval_ckpt_name': 'policy_last.ckpt',
+    'eval_ckpt_name': 'policy_epoch_4500_seed_42.ckpt',
+    # 'eval_ckpt_name': 'policy_last.ckpt',
     'checkpoint_dir': CHECKPOINT_DIR
 }

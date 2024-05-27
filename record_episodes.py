@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # get bias
     # get_bias();exit()
     
-    bias = np.array([2001, 885, 405, 1816, -118, 8])
+    bias = np.array([1857, 1040, 256, 1978, -152, 22])
     # init camera
     cam = cv2.VideoCapture(cfg['camera_port'])
     # Check if the camera opened successfully

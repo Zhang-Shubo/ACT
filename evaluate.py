@@ -62,10 +62,10 @@ if __name__ == "__main__":
     if not cam.isOpened():
         raise IOError("Cannot open camera")
     # init follower
-    follower = Robot(device_name=ROBOT_PORTS['follower'])
+    follower = Robot(device_name=ROBOT_PORTS['follower'], servo_ids=[1,2,3,4,5,6])
 
     # load the policy
-    ckpt_path = os.path.join(train_cfg['checkpoint_dir'], train_cfg['eval_ckpt_name'])
+    ckpt_path = os.path.join(train_cfg['checkpoint_dir'], task, train_cfg['eval_ckpt_name'])
     policy = make_policy(policy_config['policy_class'], policy_config)
     loading_status = policy.load_state_dict(torch.load(ckpt_path, map_location=torch.device(device)))
     print(loading_status)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     policy.eval()
 
     print(f'Loaded: {ckpt_path}')
-    stats_path = os.path.join(train_cfg['checkpoint_dir'], f'dataset_stats.pkl')
+    stats_path = os.path.join(train_cfg['checkpoint_dir'], task, f'dataset_stats.pkl')
     with open(stats_path, 'rb') as f:
         stats = pickle.load(f)
 

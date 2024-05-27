@@ -177,3 +177,9 @@ deletable.*
 
 # videos
 *.mp4
+
+oss文件
+.oss*
+oss*
+
+*.tar.gz
