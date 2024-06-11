@@ -32,7 +32,7 @@ from ft_sdk.scservo_sdk import *                      # Uses SCServo SDK library
 # Default setting
 SCS_ID                      = 1                 # SCServo ID : 1
 BAUDRATE                    = 1000000           # SCServo default baudrate : 1000000
-DEVICENAME                  = '/dev/tty.usbserial-110'    # Check which port is being used on your controller
+DEVICENAME                  = '/dev/tty.usbserial-140'    # Check which port is being used on your controller
                                                 # ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
 SCS_MINIMUM_POSITION_VALUE  = 10          # SCServo will rotate between this value
 SCS_MAXIMUM_POSITION_VALUE  = 1000
@@ -93,7 +93,8 @@ while 1:
         if scs_comm_result != COMM_SUCCESS:
             print(packetHandler.getTxRxResult(scs_comm_result))
         else:
-            print("[ID:%03d] GoalPos:%d PresPos:%d PresSpd:%d" % (SCS_ID, scs_goal_position[index], scs_present_position, scs_present_speed))
+            pass
+            # print("[ID:%03d] GoalPos:%d PresPos:%d PresSpd:%d" % (SCS_ID, scs_goal_position[index], scs_present_position, scs_present_speed))
         if scs_error != 0:
             print(packetHandler.getRxPacketError(scs_error))
 

@@ -20,7 +20,6 @@ SCSCL_MODEL_L = 3
 SCSCL_MODEL_H = 4
 
 #-------EPROM(读写)--------
-scs_id = 5
 SCSCL_BAUD_RATE = 6
 SCSCL_MIN_ANGLE_LIMIT_L = 9
 SCSCL_MIN_ANGLE_LIMIT_H = 10
@@ -59,6 +58,7 @@ class scscl(protocol_packet_handler):
 
     def WritePos(self, scs_id, position, time, speed):
         txpacket = [self.scs_lobyte(position), self.scs_hibyte(position), self.scs_lobyte(time), self.scs_hibyte(time), self.scs_lobyte(speed), self.scs_hibyte(speed)]
+        print(txpacket)
         return self.writeTxRx(scs_id, SCSCL_GOAL_POSITION_L, len(txpacket), txpacket)
 
     def ReadPos(self, scs_id):
