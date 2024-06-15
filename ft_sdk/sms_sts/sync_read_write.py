@@ -27,19 +27,18 @@ else:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
 
-sys.path.append("..")
-from scservo_sdk import *                   # Uses SCServo SDK library
+from ft_sdk.scservo_sdk import *                   # Uses SCServo SDK library
 
 # Control table address
 
 # Default setting
 BAUDRATE                    = 1000000           # SCServo default baudrate : 1000000
-DEVICENAME                  = '/dev/ttyUSB0'    # Check which port is being used on your controller
+DEVICENAME                  = '/dev/tty.usbserial-14140'    # Check which port is being used on your controller
                                                 # ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
 
 SCS_MINIMUM_POSITION_VALUE  = 0             # SCServo will rotate between this value
 SCS_MAXIMUM_POSITION_VALUE  = 4095              
-SCS_MOVING_SPEED            = 2400          # SCServo moving speed
+SCS_MOVING_SPEED            = 1200          # SCServo moving speed
 SCS_MOVING_ACC              = 50            # SCServo moving acc
 
 index = 0
@@ -80,7 +79,7 @@ while 1:
     if getch() == chr(0x1b):
         break
 
-    for scs_id in range(1, 11):
+    for scs_id in range(1, 4):
         # Add SCServo#1~10 goal position\moving speed\moving accc value to the Syncwrite parameter storage
         scs_addparam_result = packetHandler.SyncWritePosEx(scs_id, scs_goal_position[index], SCS_MOVING_SPEED, SCS_MOVING_ACC)
         if scs_addparam_result != True:
@@ -96,7 +95,7 @@ while 1:
     time.sleep(0.002) #wait for servo status moving=1
     while 1:
         # Add parameter storage for SCServo#1~10 present position value
-        for scs_id in range(1, 11):
+        for scs_id in range(1, 4):
             scs_addparam_result = groupSyncRead.addParam(scs_id)
             if scs_addparam_result != True:
                 print("[ID:%03d] groupSyncRead addparam failed" % scs_id)
@@ -106,7 +105,7 @@ while 1:
             print("%s" % packetHandler.getTxRxResult(scs_comm_result))
 
         scs_last_moving = 0;
-        for scs_id in range(1, 11):
+        for scs_id in range(1, 4):
             # Check if groupsyncread data of SCServo#1~10 is available
             scs_data_result, scs_error = groupSyncRead.isAvailable(scs_id, SMS_STS_PRESENT_POSITION_L, 11)
             if scs_data_result == True:

@@ -4,16 +4,17 @@ from dataclasses import dataclass
 from ft_sdk.scservo_sdk import *
 
 
-class FeeTech:
+class FeeTechSCS:
 
     @dataclass
     class Config:
-        def instantiate(self): return FeeTech(self)
+        def instantiate(self): return FeeTechSCS(self)
 
         baudrate: int = 1_000_000
         device_name: str = ''  # /dev/tty.usbserial-1120'
 
-    def __init__(self, config: Config):
+
+    def __init__(self, config):
         self.config = config
         self.connect()
 
@@ -41,18 +42,6 @@ class FeeTech:
         self.torque_enabled = [None for _ in range(32)]
         return True
     
-    def enable_torque(self, scs_id):
-        scs_comm_result, scs_error = self.packetHandler.write1ByteTxRx(scs_id, SCSCL_TORQUE_ENABLE, 1)
-        self._process_response(scs_comm_result, scs_error, scs_id)
-        self.torque_enabled[scs_id] = True
-        print(f"servo {scs_id} torque enabled!")
-
-    def disable_torque(self, scs_id):
-        scs_comm_result, scs_error = self.packetHandler.write1ByteTxRx(scs_id, SCSCL_TORQUE_ENABLE, 0)
-        self._process_response(scs_comm_result, scs_error, scs_id)
-        self.torque_enabled[scs_id] = False
-        print(f"servo {scs_id} torque disenabled!")
-
     def _process_response(self, scs_comm_result: int, scs_error: int, motor_id: int):
         if scs_comm_result != COMM_SUCCESS:
             raise ConnectionError(
@@ -93,24 +82,6 @@ class FeeTech:
             else:
                 return self._read_value(motor_id, address, num_bytes, tries=tries - 1)
         return value
-
-    def read_position(self, motor_id: int):
-        pos = self._read_value(motor_id, SCSCL_GOAL_POSITION_L, 4)
-        if pos > 2 ** 31:
-            pos -= 2 ** 32
-        print(f'read position {pos} for motor {motor_id}')
-        return pos
-    
-    def get_speed_and_pres_pos(self, motor_id):
-        # Read SCServo present position
-        scs_present_position, scs_present_speed, scs_comm_result, scs_error = self.packetHandler.ReadPosSpeed(motor_id)
-        self._process_response(scs_comm_result, scs_error, motor_id)
-        return scs_present_position, scs_present_speed
-
-    
-    def set_goal_position(self, motor_id, goal_position):
-        scs_comm_result, scs_error = self.packetHandler.write4ByteTxRx(motor_id, SCSCL_GOAL_POSITION_L, goal_position)
-        self._process_response(scs_comm_result, scs_error, motor_id)
     
     def write_pos(self, motor_id, position, time=0, speed=1000):
         # txpacket = [self.packetHandler.scs_lobyte(position), self.packetHandler.scs_hibyte(position), self.packetHandler.scs_lobyte(time), self.packetHandler.scs_hibyte(time), self.packetHandler.scs_lobyte(speed), self.packetHandler.scs_hibyte(speed)]
@@ -124,22 +95,101 @@ class FeeTech:
         self._process_response(scs_comm_result, scs_error, motor_id)
         return moving
 
+
+
+class FeeTechSTS:
+
+    @dataclass
+    class Config:
+        def instantiate(self): return FeeTechSTS(self)
+
+        baudrate: int = 1_000_000
+        device_name: str = ''  # /dev/tty.usbserial-1120'
+
+    def __init__(self, config: Config):
+        self.config = config
+        self.connect()
+
+    def connect(self):
+        if self.config.device_name == '':
+            for port_name in os.listdir('/dev'):
+                if 'ttyUSB' in port_name or 'ttyACM' in port_name:
+                    self.config.device_name = '/dev/' + port_name
+                    print(f'using device {self.config.device_name}')
+        self.portHandler = PortHandler(self.config.device_name)
+        self.packetHandler = sms_sts(self.portHandler)
+
+        if not self.portHandler.openPort():
+            raise Exception(f'Failed to open port {self.config.device_name}')
+        else:
+            print("Succeeded to open the port")
+
+        if not self.portHandler.setBaudRate(self.config.baudrate):
+            raise Exception(f'failed to set baudrate to {self.config.baudrate}')
+        else:
+            print("Succeeded to change the baudrate")
+        
+
+        self.operating_modes = [None for _ in range(32)]
+        self.torque_enabled = [None for _ in range(32)]
+        return True
+    
+    def _process_response(self, scs_comm_result: int, scs_error: int, motor_id: int):
+        if scs_comm_result != COMM_SUCCESS:
+            raise ConnectionError(
+                f"scs_comm_result for motor {motor_id}: {self.packetHandler.getTxRxResult(scs_comm_result)}")
+        elif scs_error != 0:
+            print(f'dxl error {scs_error}')
+            raise ConnectionError(
+                f"dynamixel error for motor {motor_id}: {self.packetHandler.getTxRxResult(scs_error)}")
+    
+    def write_pos(self, motor_id, position, speed=1000, acc=50):
+        # txpacket = [self.packetHandler.scs_lobyte(position), self.packetHandler.scs_hibyte(position), self.packetHandler.scs_lobyte(time), self.packetHandler.scs_hibyte(time), self.packetHandler.scs_lobyte(speed), self.packetHandler.scs_hibyte(speed)]
+        # scs_comm_result, scs_error = self.packetHandler.writeTxRx(motor_id, SCSCL_GOAL_POSITION_L, len(txpacket), txpacket)
+        scs_comm_result, scs_error = self.packetHandler.WritePosEx(motor_id, position, speed, acc)
+        
+        self._process_response(scs_comm_result, scs_error, motor_id)
+
+    def write_id(self, old_id, new_id):
+        # txpacket = [self.packetHandler.scs_lobyte(position), self.packetHandler.scs_hibyte(position), self.packetHandler.scs_lobyte(time), self.packetHandler.scs_hibyte(time), self.packetHandler.scs_lobyte(speed), self.packetHandler.scs_hibyte(speed)]
+        # scs_comm_result, scs_error = self.packetHandler.writeTxRx(motor_id, SCSCL_GOAL_POSITION_L, len(txpacket), txpacket)
+        scs_comm_result, scs_error = self.packetHandler.write1ByteTxRx(old_id, SMS_STS_ID, new_id)
+        
+        self._process_response(scs_comm_result, scs_error, old_id)
+
+
+    def get_moving(self, motor_id):
+        moving, scs_comm_result, scs_error = self.packetHandler.ReadMoving(motor_id)
+        self._process_response(scs_comm_result, scs_error, motor_id)
+        return moving
+
+    def get_speed_and_pres_pos(self, motor_id):
+        pre_speed, pre_pos, scs_comm_result, scs_error = self.packetHandler.ReadPosSpeed(motor_id)
+        self._process_response(scs_comm_result, scs_error, motor_id)
+        return pre_speed, pre_pos
+
     
 
 if __name__ == "__main__":
-    feetech_instant = FeeTech.Config(
+    feetech_instant = FeeTechSTS.Config(
         baudrate=1_000_000,
-        device_name='/dev/tty.usbserial-140'
+        device_name='/dev/tty.usbserial-14140'
     ).instantiate()
     # feetech_instant.read_position(1)
     # feetech_instant.packetHandler.WritePos(1, 3000, 0, 400)
-    feetech_instant.write_pos(1, 10, 0, 1200)
-    # feetech_instant.write_pos(1, 1000, 0, 1200)
+    # feetech_instant.write_pos(1, 1800, 0, 1200)
+    ID=3
+    print(feetech_instant.get_speed_and_pres_pos(ID))
+    # feetech_instant.write_id(ID, 1)
+    # feetech_instant.portHandler.closePort()
+    exit(0)
+    feetech_instant.write_pos(ID, 4000, 500, 50)
+    # feetech_instant.set_goal_position(1, 1000)
     while 1:
 
-        pres_pos, speed = feetech_instant.get_speed_and_pres_pos(1)
-        moving = feetech_instant.get_moving(1)
-        # print(speed, pres_pos)
+        pres_pos, speed = feetech_instant.get_speed_and_pres_pos(ID)
+        moving = feetech_instant.get_moving(ID)
+        print(speed, pres_pos)
         if moving == 0:
             break
     feetech_instant.portHandler.closePort()
