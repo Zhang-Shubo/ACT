@@ -1,3 +1,4 @@
+import time
 import mujoco
 import numpy as np
 from typing import Union
@@ -116,12 +117,13 @@ class Robot:
 
         self.pwm_writer.txPacket()
 
-    def set_trigger_torque(self):
+    def set_trigger_torque(self, value=200):
         """
         Sets a constant torque torque for the last servo in the chain. This is useful for the trigger of the leader arm
         """
+        # self.dynamixel.set_goal_position(self.servo_ids[-1], 1600)
         self.dynamixel._enable_torque(self.servo_ids[-1])
-        self.dynamixel.set_pwm_value(self.servo_ids[-1], 200)
+        self.dynamixel.set_pwm_value(self.servo_ids[-1], value)
 
     def limit_pwm(self, limit: Union[int, list, np.ndarray]):
         """
@@ -161,3 +163,14 @@ class Robot:
             self.dynamixel.set_operating_mode(motor_id, OperatingMode.POSITION)
         self._enable_torque()
         self.motor_control_state = MotorControlType.POSITION_CONTROL
+
+
+if __name__ == "__main__":
+    robot = Robot(device_name="COM4", servo_ids=[1,2,3,4,5,6])
+    while 1:
+        print(robot.read_position())
+    # robot.set_trigger_torque(value=-200)
+    # print(robot.read_position())
+    # for i in range(100):
+    #     time.sleep(0.1)
+    #     print(robot.read_position())

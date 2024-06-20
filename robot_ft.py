@@ -50,12 +50,46 @@ class Robot:
                 scs_present_speed = self.position_reader.getData(scs_id, SMS_STS_PRESENT_SPEED_L, 2)
                 scs_present_moving = self.position_reader.getData(scs_id, SMS_STS_MOVING, 1)
                 # print(scs_present_moving)
-                print("[ID:%03d] PresPos:%d PresSpd:%d" % (scs_id, scs_present_position, self.feetech.packetHandler.scs_tohost(scs_present_speed, 15)))
+                # print("[ID:%03d] PresPos:%d PresSpd:%d" % (scs_id, scs_present_position, self.feetech.packetHandler.scs_tohost(scs_present_speed, 15)))
                 positions.append(scs_present_position)
         return np.array(positions)
+    
+    def _disable_torque(self):
+        print(f'disabling torque for servos {self.servo_ids}')
+        for motor_id in self.servo_ids:
+            self.feetech._disable_torque(motor_id)
+
+    def set_goal_pos(self, action):
+        """
+        :param action: list or numpy array of target joint positions in range [0, 4096]
+        """
+        for i, scs_id in enumerate(self.servo_ids):
+            # Add SCServo#1~10 goal position\moving speed\moving accc value to the Syncwrite parameter storage
+            scs_addparam_result = self.feetech.packetHandler.SyncWritePosEx(scs_id, action[i], 0, 0)
+            if scs_addparam_result != True:
+                print("[ID:%03d] groupSyncWrite addparam failed" % scs_id)
+
+        # Syncwrite goal position
+        scs_comm_result = self.feetech.packetHandler.groupSyncWrite.txPacket()
+        if scs_comm_result != COMM_SUCCESS:
+            print("%s" % self.feetech.packetHandler.getTxRxResult(scs_comm_result))
+
+        # Clear syncwrite parameter storage
+        self.feetech.packetHandler.groupSyncWrite.clearParam()
     
 
 
 if __name__ == "__main__":
-    robot = Robot("/dev/tty.usbserial-14140", servo_ids=[1,2,3])
-    print(robot.read_position())
+    # robot = Robot("/dev/tty.usbserial-14140", servo_ids=[1,2,3])
+
+    robot = Robot("COM3", servo_ids=[1,2,3])
+    current_pos = robot.read_position()
+    for i in range(100):
+        print(robot.read_position())
+        time.sleep(.1)
+    # print(current_pos)
+    # print(current_pos - 20)
+    # robot.set_goal_pos(current_pos + 60)
+    # time.sleep(2)
+    # current_pos = robot.read_position()
+    # print(current_pos)

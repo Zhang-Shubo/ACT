@@ -17,8 +17,8 @@ os.environ['DEVICE'] = device
 
 # robot port names
 ROBOT_PORTS = {
-    'leader': '/dev/tty.usbmodem57640257821',
-    'follower': '/dev/tty.usbmodem58370530831'
+    'leader': 'COM4',
+    'follower': 'COM5'
 }
 
 

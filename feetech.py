@@ -142,6 +142,12 @@ class FeeTechSTS:
             print(f'dxl error {scs_error}')
             raise ConnectionError(
                 f"dynamixel error for motor {motor_id}: {self.packetHandler.getTxRxResult(scs_error)}")
+        
+    def _disable_torque(self, motor_id):
+        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(motor_id,
+                                                                       SMS_STS_TORQUE_ENABLE, 0)
+        self._process_response(dxl_comm_result, dxl_error, motor_id)
+        self.torque_enabled[motor_id] = False
     
     def write_pos(self, motor_id, position, speed=1000, acc=50):
         # txpacket = [self.packetHandler.scs_lobyte(position), self.packetHandler.scs_hibyte(position), self.packetHandler.scs_lobyte(time), self.packetHandler.scs_hibyte(time), self.packetHandler.scs_lobyte(speed), self.packetHandler.scs_hibyte(speed)]

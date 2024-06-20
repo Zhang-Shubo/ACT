@@ -10,6 +10,7 @@ from training.utils import pwm2pos, pwm2vel
 import numpy as np
 
 from robot import Robot
+from robot_ft import Robot as RobotFT
 
 # parse the task name via command line
 parser = argparse.ArgumentParser()
@@ -60,7 +61,7 @@ def follow_leader_pos(leader_bot: Robot, follow_bot: Robot, bias: np.array):
 if __name__ == "__main__":
     
     # init follower
-    follower = Robot(device_name=ROBOT_PORTS['follower'], servo_ids=[1,2,3,4,5,6])
+    follower = RobotFT(device_name=ROBOT_PORTS['follower'], servo_ids=[1,2,3,4,5,6])
     # init leader
     leader = Robot(device_name=ROBOT_PORTS['leader'], servo_ids=[1,2,3,4,5,6])
     # get bias
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     # Check if the camera opened successfully
     if not cam.isOpened():
         raise IOError("Cannot open camera")
-    leader.set_trigger_torque()
+    leader.set_trigger_torque(value=-200)
     
     for i in range(num_episodes):
         # bring the follower to the leader and start camera
