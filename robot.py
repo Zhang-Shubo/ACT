@@ -166,11 +166,19 @@ class Robot:
 
 
 if __name__ == "__main__":
-    robot = Robot(device_name="COM4", servo_ids=[1,2,3,4,5,6])
-    while 1:
-        print(robot.read_position())
+    robot = Robot(device_name="/dev/ttyACM0", servo_ids=[1,2,3,4,5,6])
+    # while 1:
+    #     print(robot.read_position())
     # robot.set_trigger_torque(value=-200)
     # print(robot.read_position())
     # for i in range(100):
     #     time.sleep(0.1)
     #     print(robot.read_position())
+
+
+    for i in range(10):
+        s = time.monotonic()
+        pos = robot.read_position()
+        delta = time.monotonic() - s
+        print(f'read position took {delta}')
+        print(f'position {pos}')

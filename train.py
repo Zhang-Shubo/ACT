@@ -5,6 +5,7 @@ import pickle
 import argparse
 from copy import deepcopy
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from training.utils import *
 
@@ -61,8 +62,10 @@ def train_bc(train_dataloader, val_dataloader, policy_config):
     validation_history = []
     min_val_loss = np.inf
     best_ckpt_info = None
+    bar = tqdm(total=train_cfg['num_epochs'])
     for epoch in range(train_cfg['num_epochs']):
         print(f'\nEpoch {epoch}')
+        
         # validation
         with torch.inference_mode():
             policy.eval()
@@ -102,10 +105,11 @@ def train_bc(train_dataloader, val_dataloader, policy_config):
             summary_string += f'{k}: {v.item():.3f} '
         print(summary_string)
 
-        if epoch % 200 == 0:
+        if epoch % 400 == 0:
             ckpt_path = os.path.join(checkpoint_dir, f"policy_epoch_{epoch}_seed_{train_cfg['seed']}.ckpt")
             torch.save(policy.state_dict(), ckpt_path)
             plot_history(train_history, validation_history, epoch, checkpoint_dir, train_cfg['seed'])
+        bar.update(1)
 
     ckpt_path = os.path.join(checkpoint_dir, f'policy_last.ckpt')
     torch.save(policy.state_dict(), ckpt_path)

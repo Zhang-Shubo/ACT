@@ -14,13 +14,17 @@ def get_bias():
 
 
 # init robots
-leader = Robot(device_name="COM4", servo_ids=[1,2,3,4,5,6])
-follower = RobotFT(device_name="COM5", servo_ids=[1,2,3,4,5,6])
+# leader = Robot(device_name="COM4", servo_ids=[1,2,3,4,5,6])
+# follower = RobotFT(device_name="COM5", servo_ids=[1,2,3,4,5,6])
+
+leader = Robot(device_name="/dev/ttyACM0", servo_ids=[1,2,3,4,5,6])
+follower = RobotFT(device_name="/dev/ttyUSB0", servo_ids=[1,2,3,4,5,6])
+
 # activate the leader gripper torque
 
 # leader._disable_torque()
-# get_bias()
-# exit()
+get_bias()
+exit()
 leader.set_trigger_torque(value=-200)
 # leader._disable_torque()
 bias = np.array([1098, 1123, 88, 1556, -189, -916])

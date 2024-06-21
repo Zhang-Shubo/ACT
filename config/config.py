@@ -17,21 +17,21 @@ os.environ['DEVICE'] = device
 
 # robot port names
 ROBOT_PORTS = {
-    'leader': 'COM4',
-    'follower': 'COM5'
+    'leader': '/dev/ttyACM0',
+    'follower': '/dev/ttyUSB0'
 }
 
 
 # task config (you can add new tasks)
 TASK_CONFIG = {
     'dataset_dir': DATA_DIR,
-    'episode_len': 2000,
+    'episode_len': 150,
     'state_dim': 6,
     'action_dim': 6,
     'cam_width': 640,
     'cam_height': 480,
     'camera_names': ['front'],
-    'camera_port': 0
+    'camera_port': -1
 }
 
 
@@ -56,10 +56,10 @@ POLICY_CONFIG = {
 # training config
 TRAIN_CONFIG = {
     'seed': 42,
-    'num_epochs': 2000,
+    'num_epochs': 4000,
     'batch_size_val': 8,
     'batch_size_train': 8,
-    'eval_ckpt_name': 'policy_epoch_4500_seed_42.ckpt',
-    # 'eval_ckpt_name': 'policy_last.ckpt',
+    # 'eval_ckpt_name': 'policy_epoch_4500_seed_42.ckpt',
+    'eval_ckpt_name': 'policy_last.ckpt',
     'checkpoint_dir': CHECKPOINT_DIR
 }

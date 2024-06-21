@@ -179,26 +179,27 @@ class FeeTechSTS:
 if __name__ == "__main__":
     feetech_instant = FeeTechSTS.Config(
         baudrate=1_000_000,
-        device_name='/dev/tty.usbserial-14140'
+        # device_name='/dev/tty.usbserial-14140'
+        device_name='/dev/ttyUSB0'
     ).instantiate()
     # feetech_instant.read_position(1)
     # feetech_instant.packetHandler.WritePos(1, 3000, 0, 400)
     # feetech_instant.write_pos(1, 1800, 0, 1200)
-    ID=3
-    print(feetech_instant.get_speed_and_pres_pos(ID))
-    # feetech_instant.write_id(ID, 1)
-    # feetech_instant.portHandler.closePort()
-    exit(0)
-    feetech_instant.write_pos(ID, 4000, 500, 50)
-    # feetech_instant.set_goal_position(1, 1000)
-    while 1:
+    # ID=3
+    # print(feetech_instant.get_speed_and_pres_pos(ID))
+    # # feetech_instant.write_id(ID, 1)
+    # # feetech_instant.portHandler.closePort()
+    # exit(0)
+    # feetech_instant.write_pos(ID, 4000, 500, 50)
+    # # feetech_instant.set_goal_position(1, 1000)
+    # while 1:
 
-        pres_pos, speed = feetech_instant.get_speed_and_pres_pos(ID)
-        moving = feetech_instant.get_moving(ID)
-        print(speed, pres_pos)
-        if moving == 0:
-            break
-    feetech_instant.portHandler.closePort()
+    #     pres_pos, speed = feetech_instant.get_speed_and_pres_pos(ID)
+    #     moving = feetech_instant.get_moving(ID)
+    #     print(speed, pres_pos)
+    #     if moving == 0:
+    #         break
+    # feetech_instant.portHandler.closePort()
     # feetech_instant.read_position(1)
     # 
     # feetech_instant.disable_torque(1)
@@ -212,3 +213,12 @@ if __name__ == "__main__":
     #     delta = time.monotonic() - s
     #     print(f'read position took {delta}')
     #     print(f'position {pos}')
+
+    motor_id = 1
+    pos = feetech_instant.get_speed_and_pres_pos(motor_id)
+    for i in range(10):
+        s = time.monotonic()
+        pos = feetech_instant.get_speed_and_pres_pos(motor_id)
+        delta = time.monotonic() - s
+        print(f'read position took {delta}')
+        print(f'position {pos}')

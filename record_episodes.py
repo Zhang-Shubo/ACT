@@ -5,7 +5,7 @@ import cv2
 import h5py
 import argparse
 from tqdm import tqdm
-from time import sleep, time
+from time import sleep, time, monotonic
 from training.utils import pwm2pos, pwm2vel
 import numpy as np
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     # get bias
     # get_bias();exit()
     
-    bias = np.array([1857, 1040, 256, 1978, -152, 22])
+    bias = np.array([1098, 1123, 88, 1556, -189, -916])
     # init camera
     cam = cv2.VideoCapture(cfg['camera_port'])
     # Check if the camera opened successfully
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     
     for i in range(num_episodes):
         # bring the follower to the leader and start camera
-        for i in range(200):
+        for i in range(50):
             follow_leader_pos(leader, follower, bias)
             _ = capture_image(cam)
         os.system('say "go"')
@@ -86,17 +86,26 @@ if __name__ == "__main__":
         action_replay = []
         for i in tqdm(range(cfg['episode_len'])):
             # observation
-            qpos = follower.read_position()
+            if isinstance(follower, RobotFT):
+                stt = monotonic()
+                qpos, qvel, _ = follower.read_data()
+                print(f"read_pos time: {monotonic() - stt}")
+            else:
+                qpos = follower.read_position()
+                qvel = follower.read_velocity()
             print("[debug]-qpos", qpos)
-            qvel = follower.read_velocity()
+            stt = monotonic()
             image = capture_image(cam)
+            print(f"capture_image time: {monotonic() - stt}")
             obs = {
                 'qpos': pwm2pos(qpos),
                 'qvel': pwm2vel(qvel),
                 'images': {cn : image for cn in cfg['camera_names']}
             }
             # action (leader's position), apply action
+            stt = monotonic()
             action = follow_leader_pos(leader, follower, bias)
+            print(f"follow_action time: {monotonic() - stt}")
             action = pwm2pos(action)
             # store data
             obs_replay.append(obs)

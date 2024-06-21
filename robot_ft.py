@@ -28,8 +28,8 @@ class Robot:
             if scs_addparam_result != True:
                 print("[ID:%03d] groupSyncRead addparam failed" % scs_id)
 
-
-    def read_position(self, tries=2):
+    
+    def read_data(self, tries=2):
         """
         Reads the joint positions of the robot. 2048 is the center position. 0 and 4096 are 180 degrees in each direction.
         :param tries: maximum number of tries to read the position
@@ -38,10 +38,12 @@ class Robot:
         result = self.position_reader.txRxPacket()
         if result != 0:
             if tries > 0:
-                return self.read_position(tries=tries - 1)
+                return self.read_data(tries=tries - 1)
             else:
                 print(f'failed to read position!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         positions = []
+        speeds = []
+        movings = []
         for scs_id in self.servo_ids:
             scs_data_result, scs_error = self.position_reader.isAvailable(scs_id, SMS_STS_PRESENT_POSITION_L, 11)
             if scs_data_result == True:
@@ -52,7 +54,18 @@ class Robot:
                 # print(scs_present_moving)
                 # print("[ID:%03d] PresPos:%d PresSpd:%d" % (scs_id, scs_present_position, self.feetech.packetHandler.scs_tohost(scs_present_speed, 15)))
                 positions.append(scs_present_position)
-        return np.array(positions)
+                speeds.append(scs_present_speed)
+                movings.append(scs_present_moving)
+        return np.array(positions), np.array(speeds), np.array(movings)
+
+
+    def read_position(self, tries=2):
+        positions, speeds, movings = self.read_data(tries=tries)
+        return positions
+    
+    def read_velocity(self, tries=2):
+        positions, speeds, movings = self.read_data(tries=tries)
+        return np.array(speeds)
     
     def _disable_torque(self):
         print(f'disabling torque for servos {self.servo_ids}')
@@ -82,14 +95,22 @@ class Robot:
 if __name__ == "__main__":
     # robot = Robot("/dev/tty.usbserial-14140", servo_ids=[1,2,3])
 
-    robot = Robot("COM3", servo_ids=[1,2,3])
-    current_pos = robot.read_position()
-    for i in range(100):
-        print(robot.read_position())
-        time.sleep(.1)
+    robot = Robot("/dev/ttyUSB0", servo_ids=[1,2,3,4,5,6])
+    # robot._disable_torque()
+    # current_pos = robot.read_position()
+    # for i in range(100):
+    #     print(robot.read_position())
+    #     time.sleep(.1)
     # print(current_pos)
     # print(current_pos - 20)
     # robot.set_goal_pos(current_pos + 60)
     # time.sleep(2)
     # current_pos = robot.read_position()
     # print(current_pos)
+    for i in range(10):
+        s = time.monotonic()
+        pos = robot.read_data()
+        delta = time.monotonic() - s
+        print(f'read position took {delta}')
+        print(f'position {pos}')
+
